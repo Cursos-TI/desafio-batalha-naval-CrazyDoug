@@ -6,6 +6,7 @@
 #define TAMANHO 10
 #define NAVIO 3
 #define AGUA 0
+#define HABILIDADE 1
 
 // Função para inicializar o tabuleiro preenchendo todas as posições com água
 void inicializar_tabuleiro(int tabuleiro[TAMANHO][TAMANHO]) {
@@ -21,13 +22,11 @@ int validar_posicao(int tabuleiro[TAMANHO][TAMANHO], int linha, int coluna, int 
     for (int i = 0; i < tamanho; i++) {
         int nova_linha = linha, nova_coluna = coluna;
         
-        // Define a direção do navio: horizontal, vertical ou diagonal
-        if (direcao == 0) nova_coluna += i; // Horizontal
-        else if (direcao == 1) nova_linha += i; // Vertical
-        else if (direcao == 2) { nova_linha += i; nova_coluna += i; } // Diagonal principal
-        else { nova_linha += i; nova_coluna -= i; } // Diagonal secundária
+        if (direcao == 0) nova_coluna += i;
+        else if (direcao == 1) nova_linha += i;
+        else if (direcao == 2) { nova_linha += i; nova_coluna += i; }
+        else { nova_linha += i; nova_coluna -= i; }
 
-        // Verifica se a posição está dentro dos limites do tabuleiro e se não há sobreposição
         if (nova_linha < 0 || nova_linha >= TAMANHO || nova_coluna < 0 || nova_coluna >= TAMANHO || tabuleiro[nova_linha][nova_coluna] == NAVIO) {
             return 0;
         }
@@ -42,6 +41,40 @@ void posicionar_navio(int tabuleiro[TAMANHO][TAMANHO], int linha, int coluna, in
         else if (direcao == 1) tabuleiro[linha + i][coluna] = NAVIO;
         else if (direcao == 2) tabuleiro[linha + i][coluna + i] = NAVIO;
         else tabuleiro[linha + i][coluna - i] = NAVIO;
+    }
+}
+
+// Função para aplicar habilidades especiais ao tabuleiro
+void aplicar_habilidade(int tabuleiro[TAMANHO][TAMANHO], int linha, int coluna, int tipo) {
+    int tamanho = 3;
+    for (int i = -tamanho; i <= tamanho; i++) {
+        for (int j = -tamanho; j <= tamanho; j++) {
+            int nova_linha = linha + i;
+            int nova_coluna = coluna + j;
+            
+            // Certifique-se que a posição está dentro dos limites do tabuleiro
+            if (nova_linha >= 0 && nova_linha < TAMANHO && nova_coluna >= 0 && nova_coluna < TAMANHO) {
+                int i_absoluto = (i < 0) ? -i : i;
+                int j_absoluto = (j < 0) ? -j : j;
+                
+                switch (tipo) {
+                    case 1: // Cone
+                        // Ajustando para a lógica do cone invertido:
+                        if (i >= 0) {
+                            if (j == 0 || j_absoluto <= i) {
+                                tabuleiro[nova_linha][nova_coluna] = HABILIDADE;
+                            }
+                        }
+                        break;
+                    case 2: // Cruz
+                        if (i == 0 || j == 0) tabuleiro[nova_linha][nova_coluna] = HABILIDADE;
+                        break;
+                    case 3: // Octaedro
+                        if (i_absoluto + j_absoluto <= tamanho) tabuleiro[nova_linha][nova_coluna] = HABILIDADE;
+                        break;
+                }
+            }
+        }
     }
 }
 
@@ -68,15 +101,13 @@ int main() {
     int tabuleiro[TAMANHO][TAMANHO];
     inicializar_tabuleiro(tabuleiro);
     
-    // Define quatro navios com suas coordenadas iniciais e direções
     int navios[4][3] = {
-        {2, 3, 0},  // Horizontal
-        {5, 6, 1},  // Vertical
-        {1, 1, 2},  // Diagonal principal
-        {6, 8, 3}   // Diagonal secundária
+        {2, 3, 0},
+        {5, 6, 1},
+        {1, 1, 2},
+        {6, 8, 3}
     };
     
-    // Posiciona os navios no tabuleiro, verificando se a posição é válida
     for (int i = 0; i < 4; i++) {
         int linha = navios[i][0];
         int coluna = navios[i][1];
@@ -87,27 +118,26 @@ int main() {
         }
     }
     
+    int escolha;
+    printf("\nEscolha uma habilidade:\n1) Cone\n2) Cruz\n3) Octaedro\nDigite um numero: ");
+    scanf("%d", &escolha);
+    
+    switch (escolha) {
+        case 1:
+            aplicar_habilidade(tabuleiro, 4, 4, 1);  // Habilidade Cone
+            break;
+        case 2:
+            aplicar_habilidade(tabuleiro, 4, 4, 2);  // Habilidade Cruz
+            break;
+        case 3:
+            aplicar_habilidade(tabuleiro, 4, 4, 3);  // Habilidade Octaedro
+            break;
+        default:
+            printf("\nNúmero digitado inválido!\n");  // Mensagem caso o número seja inválido
+            printf("\n");
+            break;
+    }
+    
     exibir_tabuleiro(tabuleiro);
     return 0;
 }
-
-// Nível Mestre - Habilidades Especiais com Matrizes
-// Sugestão: Crie matrizes para representar habilidades especiais como cone, cruz, e octaedro.
-// Sugestão: Utilize estruturas de repetição aninhadas para preencher as áreas afetadas por essas habilidades no tabuleiro.
-// Sugestão: Exiba o tabuleiro com as áreas afetadas, utilizando 0 para áreas não afetadas e 1 para áreas atingidas.
-
-// Exemplos de exibição das habilidades:
-// Exemplo para habilidade em cone:
-// 0 0 1 0 0
-// 0 1 1 1 0
-// 1 1 1 1 1
-
-// Exemplo para habilidade em octaedro:
-// 0 0 1 0 0
-// 0 1 1 1 0
-// 0 0 1 0 0
-
-// Exemplo para habilidade em cruz:
-// 0 0 1 0 0
-// 1 1 1 1 1
-// 0 0 1 0 0
